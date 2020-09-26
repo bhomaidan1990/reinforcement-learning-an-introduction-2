@@ -14,7 +14,7 @@ import OpenSpiel
 /// Richard S. Sutton, Andrew G. Barto: **Reinforcement Learning, An Introduction**,
 /// Second Edition, MIT Press, Cambridge, MA
 ///
-public class MultiArmedBandit: GameProtocol {
+public struct MultiArmedBandit: GameProtocol {
     /// Represents a state in a game. Each game type has an associated state type.
     public struct State: StateProtocol {
         /// The corresponding game instance.
@@ -25,9 +25,6 @@ public class MultiArmedBandit: GameProtocol {
 
         /// Is this a terminal state? (i.e. has the game ended?)
         public let isTerminal = false
-
-        /// All actions that are legal for the current player in this state.
-        public var legalActions: [Action] { game.allActions }
 
         /// An array of the same length as `game.allActions` representing which of those
         /// actions are legal for the current player in this state. Not valid in chance nodes.
@@ -139,7 +136,7 @@ public class MultiArmedBandit: GameProtocol {
     /// Note: chance node outcomes are not included in this count.
     /// For example, this corresponds to the actions represented by each output
     /// neuron of the policy net head learning which move to play.
-    public lazy var allActions: [Action] = { Array(0..<armCount) }()
+    public var allActions: [Action] { Array(0..<armCount) }
 
     /// Utility range. These functions define the lower and upper bounds on the
     /// values returned by `State.return`. This range should be as tight as possible;

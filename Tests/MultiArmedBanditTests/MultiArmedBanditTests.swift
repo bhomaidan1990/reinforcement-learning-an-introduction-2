@@ -1,7 +1,26 @@
 import XCTest
+import MultiArmedBandit
 import class Foundation.Bundle
 
+
 final class MultiArmedBanditTests: XCTestCase {
+    static var allTests = [
+        ("testRandomActions", testRandomActions),
+        ("testExample", testExample),
+    ]
+    
+    func testRandomActions() {
+        let bandit = MultiArmedBandit(armCount: 10)
+        
+        var state = bandit.initialState
+        for i in 0...100 {
+            precondition(!state.legalActions.isEmpty)
+            
+            let randomAction = state.legalActions.randomElement()!
+            state = state.applying(randomAction)
+        }
+    }
+    
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
@@ -40,8 +59,4 @@ final class MultiArmedBanditTests: XCTestCase {
         return Bundle.main.bundleURL
       #endif
     }
-
-    static var allTests = [
-        ("testExample", testExample),
-    ]
 }
