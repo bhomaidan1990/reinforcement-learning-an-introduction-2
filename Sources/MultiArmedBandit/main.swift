@@ -2,17 +2,6 @@ import TensorFlow
 import OpenSpiel
 
 
-func playRandom<Game: GameProtocol>(game: Game, for steps: Int) -> Game.State {
-    var state = game.initialState
-    
-    for _ in 0..<steps {
-        assert(!state.legalActions.isEmpty)
-        let randomAction = state.legalActions.randomElement()!
-        state = state.applying(randomAction)
-    }
-    
-    return state
-}
 
 func play<Policy: StochasticPolicy>(_ game: Policy.Game, actingWith policy: Policy,
                                     for steps: Int) -> Policy.Game.State {
@@ -22,8 +11,10 @@ func play<Policy: StochasticPolicy>(_ game: Policy.Game, actingWith policy: Poli
         assert(!currentState.legalActions.isEmpty)
         
         let actionProbabilities = policy.actionProbabilities(forState: currentState)
-        let randomAction = currentState.legalActions.randomElement()!
-        currentState = currentState.applying(randomAction)
+        assert(!actionProbabilities.isEmpty)
+
+        let sampledAction = actionProbabilities.sample()!
+        currentState = currentState.applying(sampledAction)
     }
     
     return currentState
