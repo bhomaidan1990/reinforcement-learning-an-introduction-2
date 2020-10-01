@@ -21,15 +21,25 @@ func play<Policy: StochasticPolicy>(_ game: Policy.Game, actingWith policy: Poli
 }
 
 let bandit = MultiArmedBandit()
+bandit.plotRewardDistribution().show()
 print(bandit)
 
-let policy = UniformRandomPolicy<MultiArmedBandit>(bandit)
-print(policy)
+let policies: [AnyStochasticPolicy<MultiArmedBandit>] = [
+    .init(UniformRandomPolicy<MultiArmedBandit>(bandit)),
+    .init(EpsilonGreedyGambler(bandit)),
+    .init(AveragingGambler(bandit)),
+    .init(OptimisticGambler(bandit)),
+    .init(UCBGambler(bandit)),
+    .init(GradientGambler(bandit))
+]
+print(policies)
 
-let lastState = play(bandit, actingWith: policy, for: 100)
-print(lastState)
-print(lastState.history)
 
+for policy in policies {
+    let lastState = play(bandit, actingWith: policy, for: 100)
+    print(lastState)
+    print(lastState.history)
+}
 
 extension Dictionary where Value == Double {
     
@@ -49,5 +59,20 @@ extension Dictionary where Value == Double {
         }
         
         return sampledAction
+    }
+}
+
+
+struct AnyStochasticPolicy<Game: GameProtocol>: StochasticPolicy {
+    typealias Game = Game
+
+    private let actionProbabilitiesClosure: (Game.State) -> [Game.Action : Double]
+    
+    init<Policy>(_ policy: Policy) where Policy.Game == Game, Policy: StochasticPolicy {
+        actionProbabilitiesClosure = policy.actionProbabilities
+    }
+
+    func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
+        return actionProbabilitiesClosure(state)
     }
 }

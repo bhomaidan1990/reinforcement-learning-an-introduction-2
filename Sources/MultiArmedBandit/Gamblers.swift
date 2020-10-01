@@ -28,20 +28,20 @@ struct AveragingGambler: StochasticPolicy {
 
         let initialQ = Tensor(randomUniform: TensorShape([game.allActions.count]),
                               lowerBound: Tensor(0.0),
-                              upperBound: Tensor(1e-5)).scalars
-        Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ))
+                              upperBound: Tensor(1e-5))
+        Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ.scalars))
     }
     
     func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
-        let randomIndex = Tensor(randomUniform: [1],
-                                 lowerBound: Tensor(0),
-                                 upperBound: Tensor(Int64(state.legalActions.count))).scalarized()
-        let randomAction = state.legalActions[Int(randomIndex)]
+        assert(!state.isTerminal)
+        assert(!state.legalActions.isEmpty)
+        
+        let legalQValues = state.legalActions.map{ Q[$0]! }
+        var legalActionProbabilities = Array(repeating: ε / Double(state.legalActions.count - 1),
+                                             count: state.legalActions.count)
+        legalActionProbabilities[legalQValues.argMax()!] = 1 - ε
 
-        let maxQ = Q.max { $0.value > $1.value }
-        let maxQAction = maxQ!.key
-
-        return [randomAction: ε, maxQAction: 1 - ε]
+        return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionProbabilities))
     }
     
     mutating func update(with action: Game.Action, reward: Double) {
@@ -74,20 +74,20 @@ struct EpsilonGreedyGambler: StochasticPolicy {
 
         let initialQ = Tensor(randomUniform: TensorShape([game.allActions.count]),
                               lowerBound: Tensor(0.0),
-                              upperBound: Tensor(1e-5)).scalars
-        Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ))
+                              upperBound: Tensor(1e-5))
+        Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ.scalars))
     }
     
     func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
-        let randomIndex = Tensor(randomUniform: [1],
-                                 lowerBound: Tensor(0),
-                                 upperBound: Tensor(Int64(state.legalActions.count))).scalarized()
-        let randomAction = state.legalActions[Int(randomIndex)]
+        assert(!state.isTerminal)
+        assert(!state.legalActions.isEmpty)
+        
+        let legalQValues = state.legalActions.map{ Q[$0]! }
+        var legalActionProbabilities = Array(repeating: ε / Double(state.legalActions.count - 1),
+                                             count: state.legalActions.count)
+        legalActionProbabilities[legalQValues.argMax()!] = 1 - ε
 
-        let maxQ = Q.max { $0.value > $1.value }
-        let maxQAction = maxQ!.key
-
-        return [randomAction: ε, maxQAction: 1 - ε]
+        return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionProbabilities))
     }
     
     mutating func update(with action: Game.Action, reward: Double) {
@@ -124,15 +124,15 @@ struct OptimisticGambler: StochasticPolicy {
     }
     
     func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
-        let randomIndex = Tensor(randomUniform: [1],
-                                 lowerBound: Tensor(0),
-                                 upperBound: Tensor(Int64(state.legalActions.count))).scalarized()
-        let randomAction = state.legalActions[Int(randomIndex)]
+        assert(!state.isTerminal)
+        assert(!state.legalActions.isEmpty)
+        
+        let legalQValues = state.legalActions.map{ Q[$0]! }
+        var legalActionProbabilities = Array(repeating: ε / Double(state.legalActions.count - 1),
+                                             count: state.legalActions.count)
+        legalActionProbabilities[legalQValues.argMax()!] = 1 - ε
 
-        let maxQ = Q.max { $0.value > $1.value }
-        let maxQAction = maxQ!.key
-
-        return [randomAction: ε, maxQAction: 1 - ε]
+        return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionProbabilities))
     }
     
     mutating func update(with action: Game.Action, reward: Double) {
@@ -142,7 +142,7 @@ struct OptimisticGambler: StochasticPolicy {
 
 
 /// Upper Confidence Bound Action Selection algorithm per Chapter 2.7
-struct UCBGGambler: DeterministicPolicy {
+struct UCBGambler: DeterministicPolicy {
     typealias Game = MultiArmedBandit
     
     /// Instance of the Multi-armed Bandit game being played
@@ -183,11 +183,13 @@ struct UCBGGambler: DeterministicPolicy {
         Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ))
     }
     
-    func action(forState state: MultiArmedBandit.State) -> Game.Action {
-        let maxUCB = UCB.max { $0.value > $1.value }
-        let maxUCBAction = maxUCB!.key
-
-        return maxUCBAction
+    func action(forState state: Game.State) -> Game.Action {
+        assert(!state.isTerminal)
+        assert(!state.legalActions.isEmpty)
+ 
+        let legalUCBValues = state.legalActions.map{ UCB[$0]! }
+        let maxLegalUCBAction = state.legalActions[legalUCBValues.argMax()!]
+        return maxLegalUCBAction
     }
     
     mutating func update(with action: Game.Action, reward: Double) {
@@ -227,18 +229,14 @@ struct GradientGambler: StochasticPolicy {
     }
 
     func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
-        var p = H
-        for (action, h) in H {
-            p[action] = exp(h)
-        }
+        assert(!state.isTerminal)
+        assert(!state.legalActions.isEmpty)
+
+        let legalActionsExpLogits = state.legalActions.map { exp(H[$0]!) }
+        let logitsExpSum = legalActionsExpLogits.reduce(0.0, +)
+        let legalActionsProbabilities = legalActionsExpLogits.map { $0 / logitsExpSum }
         
-        let expSum = p.values.reduce(0.0, +)
-        
-        p.forEach { (action, value) in
-            p[action] = value / expSum
-        }
-        
-        return p
+        return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionsProbabilities))
     }
     
     mutating func update(with takenAction: Game.Action, in state: Game.State, reward: Double) {
@@ -253,5 +251,15 @@ struct GradientGambler: StochasticPolicy {
         }
 
         R = R + α * (reward - R)
+    }
+}
+
+
+// MARK: - Utilities
+
+fileprivate extension Array where Element: Comparable {
+    func argMax() -> Array.Index? {
+        let maxEnumerated = enumerated().max { $0.element > $1.element }
+        return maxEnumerated?.offset
     }
 }

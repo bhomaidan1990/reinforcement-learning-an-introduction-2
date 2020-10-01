@@ -1,5 +1,6 @@
 import TensorFlow
 import OpenSpiel
+import Plotly
 
 
 /// Multi-armed Bandit Testbed according to *Sutton & Barto '18*, chapter 2.
@@ -183,6 +184,47 @@ public struct MultiArmedBandit: GameProtocol {
     }
 }
 
+
+// MARK: - Visualization
+
+extension MultiArmedBandit {
+    
+    func plotRewardDistribution() -> Figure {
+        let state = initialState
+        
+        let numSamples = 1_000
+        var armIndices = [String]()
+        var armRewardSamples = [Double]()
+
+        for arm in 0..<armCount {
+            let indices = Array(repeating: String(arm), count: numSamples)
+            let rewardSamples = (0..<numSamples).map {
+                _ in state.applying(arm).utility(for: .player(0))
+            }
+
+            armIndices.append(contentsOf: indices)
+            armRewardSamples.append(contentsOf: rewardSamples)
+        }
+        
+        let armRewardDistributions = Violin(
+            y: armRewardSamples,
+            x: armIndices,
+            points: .off,
+            meanLine: .init(visible: true)
+        )
+        
+        return Figure(data: [armRewardDistributions])
+    }
+}
+
+extension ClosedRange: Plotable where Bound: Encodable {
+    public func encode(toPlotly encoder: Encoder) throws {
+        try self.encode(to: encoder)
+    }
+}
+
+
+// MARK: - Utilities
 
 extension MultiArmedBandit: CustomStringConvertible {
     public var description: String {

@@ -1,5 +1,4 @@
 import XCTest
-import MultiArmedBandit
 import class Foundation.Bundle
 
 
@@ -10,15 +9,7 @@ final class MultiArmedBanditTests: XCTestCase {
     ]
     
     func testRandomActions() {
-        let bandit = MultiArmedBandit(armCount: 10)
-        
-        var state = bandit.initialState
-        for i in 0...100 {
-            precondition(!state.legalActions.isEmpty)
-            
-            let randomAction = state.legalActions.randomElement()!
-            state = state.applying(randomAction)
-        }
+        //let bandit = MultiArmedBandit(armCount: 10)
     }
     
     func testExample() throws {
