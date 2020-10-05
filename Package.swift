@@ -14,10 +14,9 @@ let package = Package(
         )
     ],
     dependencies: [
-        // FIXME: Replace with DeepMind's official repo once my fixes are merged.
         .package(
             name: "OpenSpiel",
-            url: "https://github.com/vojtamolda/open_spiel.git",
+            url: "https://github.com/deepmind/open_spiel.git",
             .branch("master")
         )
     ],
