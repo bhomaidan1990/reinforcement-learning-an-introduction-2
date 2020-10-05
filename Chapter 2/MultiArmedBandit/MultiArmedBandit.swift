@@ -1,6 +1,5 @@
 import TensorFlow
 import OpenSpiel
-import Plotly
 
 
 /// Multi-armed Bandit Testbed according to *Sutton & Barto '18*, chapter 2.
@@ -75,11 +74,26 @@ public struct MultiArmedBandit: GameProtocol {
             return []
         }
         
+        private var armRewards: Tensor<Double>
+
         private var sampledReward: Double
 
-        init(_ game: MultiArmedBandit) {
+        init(_ game: Game) {
             self.game = game
-            self.sampledReward = 0.0
+            
+            if game.stationary {
+                armRewards = Tensor(
+                    randomNormal: TensorShape([game.armCount]),
+                    mean: Game.rewardMean,
+                    standardDeviation: Game.rewardStandardDeviation
+                )
+            } else {
+                armRewards = Tensor(
+                    zeros: TensorShape([game.armCount])
+                )
+            }
+
+            sampledReward = 0.0
         }
         
         /// games. This function encodes the logic of the game rules. Returns true
@@ -90,15 +104,23 @@ public struct MultiArmedBandit: GameProtocol {
         /// `GameInfo.chanceMode`. If `.explicitStochastic`, then the outcome should be
         /// directly applied. If `.sampledStochastic`, then a dummy outcome is passed and
         /// the sampling of an outcome should be done in this function and then applied.
-        public mutating func apply(_ action: MultiArmedBandit.Action) {
-            precondition((0..<game.armCount).contains(action))
-
+        public mutating func apply(_ action: Game.Action) {
+            precondition(legalActions.contains(action))
             history.append(action)
+
             sampledReward = Tensor(
                 randomNormal: [1],
-                mean: game.armRewards[action],
-                standardDeviation: MultiArmedBandit.rewardSampleStandardDeviation
+                mean: armRewards[action],
+                standardDeviation: Game.rewardSampleStandardDeviation
             ).scalarized()
+            
+            if !game.stationary {
+                armRewards += Tensor(
+                    randomNormal: armRewards.shape,
+                    mean: Game.rewardDriftMean,
+                    standardDeviation: Game.rewardDriftStandardDeviation
+                )
+            }
         }
     }
 
@@ -167,74 +189,34 @@ public struct MultiArmedBandit: GameProtocol {
     /// maximum number of individual decisions summed over all players. Outcomes
     /// of chance nodes are not included in this length.
     public let maxGameLength = Int.max
-    
-    private let armRewards: Tensor<Double>
-    private var armCount: Int { armRewards.scalarCount }
-    
+
+    private let stationary: Bool
+    private let armCount: Int
+
     static private let rewardMean = Tensor(0.0)
     static private let rewardStandardDeviation = Tensor(1.0)
+    
+    static private let rewardDriftMean = Tensor(0.0)
+    static private let rewardDriftStandardDeviation = Tensor(0.01)
+
     static private let rewardSampleStandardDeviation = Tensor(1.0)
 
-    public init(armCount: Int = 10) {
-        self.armRewards = Tensor(
-            randomNormal: TensorShape([armCount]),
-            mean: Self.rewardMean,
-            standardDeviation: Self.rewardStandardDeviation
-        )
+    public init(stationary: Bool = true, armCount: Int = 10) {
+        self.stationary = stationary
+        self.armCount = armCount
     }
 }
 
-
-// MARK: - Visualization
-
-extension MultiArmedBandit {
-    
-    func plotRewardDistribution() -> Figure {
-        let state = initialState
-        
-        let numSamples = 1_000
-        var armIndices = [String]()
-        var armRewardSamples = [Double]()
-
-        for arm in 0..<armCount {
-            let indices = Array(repeating: String(arm), count: numSamples)
-            let rewardSamples = (0..<numSamples).map {
-                _ in state.applying(arm).utility(for: .player(0))
-            }
-
-            armIndices.append(contentsOf: indices)
-            armRewardSamples.append(contentsOf: rewardSamples)
-        }
-        
-        let armRewardDistributions = Violin(
-            y: armRewardSamples,
-            x: armIndices,
-            points: .off,
-            meanLine: .init(visible: true)
-        )
-        
-        return Figure(data: [armRewardDistributions])
-    }
-}
-
-extension ClosedRange: Plotable where Bound: Encodable {
-    public func encode(toPlotly encoder: Encoder) throws {
-        try self.encode(to: encoder)
-    }
-}
-
-
-// MARK: - Utilities
 
 extension MultiArmedBandit: CustomStringConvertible {
     public var description: String {
-        "MultiArmedBandit(rewards: \(armRewards))"
+        "MultiArmedBandit(armCount: \(armCount), stationary: \(stationary))"
     }
 }
 
+
 extension MultiArmedBandit.State: CustomStringConvertible {
     public var description: String {
-        let meanReward = history.last != nil ? game.armRewards[history.last!].scalarized() : 0.0
-        return "MultiArmedBandit.State(sampledReward: \(sampledReward), meanReward: \(meanReward))"
+        return "MultiArmedBandit.State(sampledReward: \(sampledReward), armRewards: \(armRewards))"
     }
 }

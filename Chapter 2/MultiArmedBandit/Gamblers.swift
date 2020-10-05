@@ -4,8 +4,8 @@ import OpenSpiel
 
 
 /// Simple Bandit algorithm with true reward averaging per Chapter 2.4
-struct AveragingGambler: StochasticPolicy {
-    typealias Game = MultiArmedBandit
+public struct AveragingGambler: StochasticPolicy {
+    public typealias Game = MultiArmedBandit
     
     /// Instance of the Multi-armed Bandit game being played
     private let game: Game
@@ -32,7 +32,7 @@ struct AveragingGambler: StochasticPolicy {
         Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ.scalars))
     }
     
-    func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
+    public func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
         assert(!state.isTerminal)
         assert(!state.legalActions.isEmpty)
         
@@ -44,7 +44,7 @@ struct AveragingGambler: StochasticPolicy {
         return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionProbabilities))
     }
     
-    mutating func update(with action: Game.Action, reward: Double) {
+    public mutating func update(with action: Game.Action, reward: Double) {
         N[action] = N[action]! + 1
         Q[action] = Q[action]! + (reward - Q[action]!) / Double(N[action]!)
     }
@@ -52,8 +52,8 @@ struct AveragingGambler: StochasticPolicy {
 
 
 /// Simple Bandit algorithm with fixed learning step per Chapter 2.5
-struct EpsilonGreedyGambler: StochasticPolicy {
-    typealias Game = MultiArmedBandit
+public struct EpsilonGreedyGambler: StochasticPolicy {
+    public typealias Game = MultiArmedBandit
     
     /// Instance of the Multi-armed Bandit game being played
     private let game: Game
@@ -67,7 +67,7 @@ struct EpsilonGreedyGambler: StochasticPolicy {
     /// Estimated value of each action.
     private var Q: [Game.Action: Double]
     
-    init(_ game: Game, ε: Double = 0.01, α: Double = 0.1) {
+    public init(_ game: Game, ε: Double = 0.01, α: Double = 0.1) {
         self.game = game
         self.ε = ε
         self.α = α
@@ -78,7 +78,7 @@ struct EpsilonGreedyGambler: StochasticPolicy {
         Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ.scalars))
     }
     
-    func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
+    public func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
         assert(!state.isTerminal)
         assert(!state.legalActions.isEmpty)
         
@@ -90,15 +90,15 @@ struct EpsilonGreedyGambler: StochasticPolicy {
         return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionProbabilities))
     }
     
-    mutating func update(with action: Game.Action, reward: Double) {
+    public mutating func update(with action: Game.Action, reward: Double) {
         Q[action] = Q[action]! + α * (reward - Q[action]!)
     }
 }
 
 
 /// Optimistic Initial Values algorithm per Chapter 2.6
-struct OptimisticGambler: StochasticPolicy {
-    typealias Game = MultiArmedBandit
+public struct OptimisticGambler: StochasticPolicy {
+    public typealias Game = MultiArmedBandit
     
     /// Instance of the Multi-armed Bandit game being played
     private let game: Game
@@ -112,7 +112,7 @@ struct OptimisticGambler: StochasticPolicy {
     /// Estimated value of each action.
     private var Q: [Game.Action: Double]
     
-    init(_ game: Game, ε: Double = 0.01, α: Double = 0.1, Q0:Double = 10.0) {
+    public init(_ game: Game, ε: Double = 0.01, α: Double = 0.1, Q0:Double = 10.0) {
         self.game = game
         self.ε = ε
         self.α = α
@@ -123,7 +123,7 @@ struct OptimisticGambler: StochasticPolicy {
         Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ))
     }
     
-    func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
+    public func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
         assert(!state.isTerminal)
         assert(!state.legalActions.isEmpty)
         
@@ -135,15 +135,15 @@ struct OptimisticGambler: StochasticPolicy {
         return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionProbabilities))
     }
     
-    mutating func update(with action: Game.Action, reward: Double) {
+    public mutating func update(with action: Game.Action, reward: Double) {
         Q[action] = Q[action]! + α * (reward - Q[action]!)
     }
 }
 
 
 /// Upper Confidence Bound Action Selection algorithm per Chapter 2.7
-struct UCBGambler: DeterministicPolicy {
-    typealias Game = MultiArmedBandit
+public struct UCBGambler: DeterministicPolicy {
+    public typealias Game = MultiArmedBandit
     
     /// Instance of the Multi-armed Bandit game being played
     private let game: Game
@@ -170,7 +170,7 @@ struct UCBGambler: DeterministicPolicy {
         return UCB
     }
     
-    init(_ game: Game, c: Double = 1.0) {
+    public init(_ game: Game, c: Double = 1.0) {
         self.game = game
         self.c = c
 
@@ -183,7 +183,7 @@ struct UCBGambler: DeterministicPolicy {
         Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ))
     }
     
-    func action(forState state: Game.State) -> Game.Action {
+    public func action(forState state: Game.State) -> Game.Action {
         assert(!state.isTerminal)
         assert(!state.legalActions.isEmpty)
  
@@ -192,7 +192,7 @@ struct UCBGambler: DeterministicPolicy {
         return maxLegalUCBAction
     }
     
-    mutating func update(with action: Game.Action, reward: Double) {
+    public mutating func update(with action: Game.Action, reward: Double) {
         N[action] = N[action]! + 1
         Q[action] = Q[action]! + (reward - Q[action]!) / Double(N[action]!)
     }
@@ -201,8 +201,8 @@ struct UCBGambler: DeterministicPolicy {
 
 
 /// Upper Confidence Bound Action Selection algorithm per Chapter 2.7
-struct GradientGambler: StochasticPolicy {
-    typealias Game = MultiArmedBandit
+public struct GradientGambler: StochasticPolicy {
+    public typealias Game = MultiArmedBandit
     
     /// Instance of the Multi-armed Bandit game being played
     private let game: Game
@@ -216,7 +216,7 @@ struct GradientGambler: StochasticPolicy {
     /// Reward baseline
     private var R: Double
     
-    init(_ game: Game, α: Double = 0.01) {
+    public init(_ game: Game, α: Double = 0.01) {
         self.game = game
         self.α = α
 
@@ -228,7 +228,7 @@ struct GradientGambler: StochasticPolicy {
         R = 0.0
     }
 
-    func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
+    public func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
         assert(!state.isTerminal)
         assert(!state.legalActions.isEmpty)
 
@@ -239,7 +239,7 @@ struct GradientGambler: StochasticPolicy {
         return Dictionary(uniqueKeysWithValues: zip(state.legalActions, legalActionsProbabilities))
     }
     
-    mutating func update(with takenAction: Game.Action, in state: Game.State, reward: Double) {
+    public mutating func update(with takenAction: Game.Action, in state: Game.State, reward: Double) {
         let actionProbabilities = self.actionProbabilities(forState: state)
 
         for (action, h) in H {

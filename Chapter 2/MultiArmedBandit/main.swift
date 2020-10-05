@@ -20,23 +20,28 @@ func play<Policy: StochasticPolicy>(_ game: Policy.Game, actingWith policy: Poli
     return currentState
 }
 
-let bandit = MultiArmedBandit()
-bandit.plotRewardDistribution().show()
-print(bandit)
+let stationaryBandit = MultiArmedBandit(stationary: true)
+stationaryBandit.initialState.armRewardPlot.show()
+print(stationaryBandit)
+
+
+let nonStationaryBandit = MultiArmedBandit(stationary: false)
+nonStationaryBandit.initialState.armRewardPlot.show()
+print(nonStationaryBandit)
 
 let policies: [AnyStochasticPolicy<MultiArmedBandit>] = [
-    .init(UniformRandomPolicy<MultiArmedBandit>(bandit)),
-    .init(EpsilonGreedyGambler(bandit)),
-    .init(AveragingGambler(bandit)),
-    .init(OptimisticGambler(bandit)),
-    .init(UCBGambler(bandit)),
-    .init(GradientGambler(bandit))
+    .init(UniformRandomPolicy<MultiArmedBandit>(stationaryBandit)),
+    .init(EpsilonGreedyGambler(stationaryBandit)),
+    .init(AveragingGambler(stationaryBandit)),
+    .init(OptimisticGambler(stationaryBandit)),
+    .init(UCBGambler(stationaryBandit)),
+    .init(GradientGambler(stationaryBandit))
 ]
 print(policies)
 
 
 for policy in policies {
-    let lastState = play(bandit, actingWith: policy, for: 100)
+    let lastState = play(stationaryBandit, actingWith: policy, for: 100)
     print(lastState)
     print(lastState.history)
 }
