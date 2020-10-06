@@ -1,7 +1,12 @@
-import Foundation
 import TensorFlow
-import OpenSpiel
 
+
+public extension Array where Element: Comparable {
+    func argMax() -> Array.Index? {
+        let maxEnumerated = enumerated().max { $0.element > $1.element }
+        return maxEnumerated?.offset
+    }
+}
 
 public extension Dictionary where Value == Double {
     /// Sample an action from a dictionary that represents probabilities of a discrete action distribution.

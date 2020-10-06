@@ -1,6 +1,7 @@
-import XCTest
 import TensorFlow
 import OpenSpiel
+import XCTest
+
 import MultiArmedBandit
 import Utilities
 

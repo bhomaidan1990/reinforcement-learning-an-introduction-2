@@ -1,6 +1,7 @@
-import Foundation
 import TensorFlow
 import OpenSpiel
+
+import Utilities
 
 
 /// Simple Bandit algorithm with true reward averaging per Chapter 2.4
@@ -32,7 +33,7 @@ public struct AveragingGambler: StochasticPolicy {
         Q = Dictionary(uniqueKeysWithValues: zip(game.allActions, initialQ.scalars))
     }
     
-    public func actionProbabilities(forState state: Game.State) -> [Game.Action : Double] {
+    public func actionProbabilities(forState state: Game.State) -> [Game.Action: Double] {
         assert(!state.isTerminal)
         assert(!state.legalActions.isEmpty)
         
@@ -251,15 +252,5 @@ public struct GradientGambler: StochasticPolicy {
         }
 
         R = R + α * (reward - R)
-    }
-}
-
-
-// MARK: - Utilities
-
-fileprivate extension Array where Element: Comparable {
-    func argMax() -> Array.Index? {
-        let maxEnumerated = enumerated().max { $0.element > $1.element }
-        return maxEnumerated?.offset
     }
 }

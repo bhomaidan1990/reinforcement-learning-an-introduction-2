@@ -7,12 +7,12 @@ import OpenSpiel
 /// *"Consider the following learning problem. You are faced repeatedly with a choice among k*
 /// *different options, or actions. After each choice you receive a numerical reward chosen from*
 /// *a stationary probability distribution that depends on the action you selected. Objective is to*
-/// *maximize the expected total reward over some time period."* - *Sutton & Barto '18*, page 25.
+/// *maximize the expected total reward over some time period."*
 ///
 /// - Remark:
-/// [Sutton & Barto '18](http://incompleteideas.net/book/the-book-2nd.html) -
-/// Richard S. Sutton, Andrew G. Barto: **Reinforcement Learning, An Introduction**,
-/// Second Edition, MIT Press, Cambridge, MA
+/// [Sutton & Barto '18](http://incompleteideas.net/book/the-book-2nd.html):
+/// Richard S. Sutton, Andrew G. Barto - **Reinforcement Learning, An Introduction**,
+/// Second Edition, 2018, MIT Press, Cambridge, MA
 ///
 public struct MultiArmedBandit: GameProtocol {
     /// Represents a state in a game. Each game type has an associated state type.
@@ -74,9 +74,9 @@ public struct MultiArmedBandit: GameProtocol {
             return []
         }
         
-        private var armRewards: Tensor<Double>
+        var armRewards: Tensor<Double>
 
-        private var sampledReward: Double
+        var sampledReward: Double
 
         init(_ game: Game) {
             self.game = game
