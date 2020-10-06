@@ -4,6 +4,10 @@ import OpenSpiel
 import Utilities
 
 
+/// Random Bandit algorithm.
+public typealias RandomGambler = UniformRandomPolicy<MultiArmedBandit>
+
+
 /// Simple Bandit algorithm with true reward averaging per Chapter 2.4
 public struct AveragingGambler: StochasticPolicy {
     public typealias Game = MultiArmedBandit

@@ -193,13 +193,13 @@ public struct MultiArmedBandit: GameProtocol {
     public let stationary: Bool
     public let armCount: Int
 
-    static private let rewardMean = Tensor(0.0)
-    static private let rewardStandardDeviation = Tensor(1.0)
+    static let rewardMean = Tensor(0.0)
+    static let rewardStandardDeviation = Tensor(1.0)
     
-    static private let rewardDriftMean = Tensor(0.0)
-    static private let rewardDriftStandardDeviation = Tensor(0.01)
+    static let rewardDriftMean = Tensor(0.0)
+    static let rewardDriftStandardDeviation = Tensor(0.01)
 
-    static private let rewardSampleStandardDeviation = Tensor(1.0)
+    static let rewardSampleStandardDeviation = Tensor(1.0)
 
     public init(stationary: Bool = true, armCount: Int = 10) {
         self.stationary = stationary
