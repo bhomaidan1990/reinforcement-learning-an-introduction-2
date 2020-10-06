@@ -19,7 +19,7 @@ public struct AveragingGambler: StochasticPolicy {
     /// Estimated value of each action.
     private var Q: [Game.Action: Double]
     
-    init(_ game: Game, ε: Double = 0.01) {
+    public init(_ game: Game, ε: Double = 0.01) {
         self.game = game
         self.ε = ε
 

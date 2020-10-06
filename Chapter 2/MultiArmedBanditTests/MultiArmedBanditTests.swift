@@ -1,55 +1,59 @@
 import XCTest
+import TensorFlow
+import OpenSpiel
 import MultiArmedBandit
-import class Foundation.Bundle
 
 
 final class MultiArmedBanditTests: XCTestCase {
-    static var allTests = [
-        ("testRandomActions", testRandomActions),
-        ("testExample", testExample),
-    ]
-    
+
     func testRandomActions() {
         let bandit = MultiArmedBandit(armCount: 10)
         print(bandit)
     }
     
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
+    func testStationary() {
+        let stationaryBandit = MultiArmedBandit(stationary: true)
+        //stationaryBandit.initialState.armRewardPlot.show()
+        print(stationaryBandit)
 
-        // Some of the APIs that we use below are available in macOS 10.13 and above.
-        guard #available(macOS 10.13, *) else {
-            return
-        }
 
-        let fooBinary = productsDirectory.appendingPathComponent("MultiArmedBandit")
-
-        let process = Process()
-        process.executableURL = fooBinary
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8)
-
-        XCTAssertEqual(output, "Hello, world!\n")
+        let nonStationaryBandit = MultiArmedBandit(stationary: false)
+        //nonStationaryBandit.initialState.armRewardPlot.show()
+        print(nonStationaryBandit)
     }
+    
+    func testRandomSeedRepeatability() {
+        let bandit = MultiArmedBandit(stationary: false)
+        let fixedActions = (0...100).map { _ in bandit.allActions.randomElement()! }
+        let fixedSeed = randomSeedForTensorFlow()
 
-    /// Returns path to the built products directory.
-    var productsDirectory: URL {
-      #if os(macOS)
-        for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-            return bundle.bundleURL.deletingLastPathComponent()
+        var state0 = bandit.initialState
+        var utilities0 = [Double]()
+        withRandomSeedForTensorFlow(fixedSeed) {
+            state0 = bandit.initialState
+
+            for fixedAction in fixedActions {
+                let utility = state0.utility(for: .player(0))
+                utilities0.append(utility)
+                
+                state0 = state0.applying(fixedAction)
+            }
         }
-        fatalError("couldn't find the products directory")
-      #else
-        return Bundle.main.bundleURL
-      #endif
+        
+        var state1 = bandit.initialState
+        var utilities1 = [Double]()
+        withRandomSeedForTensorFlow(fixedSeed) {
+            state1 = bandit.initialState
+
+            for fixedAction in fixedActions {
+                let utility = state1.utility(for: .player(0))
+                utilities1.append(utility)
+                
+                state1 = state1.applying(fixedAction)
+            }
+        }
+        
+        XCTAssertEqual(utilities0, utilities1)
+        XCTAssertEqual(state0, state1)
     }
 }

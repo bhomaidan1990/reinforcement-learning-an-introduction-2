@@ -43,10 +43,12 @@ let package = Package(
         ),
         .target(
             name: "Utilities",
+            dependencies: ["OpenSpiel"],
             path: "Tests/Utilities"
         ),
         .testTarget(
             name: "UtilitiesTests",
+            dependencies: ["Utilities"],
             path: "Tests/UtilitiesTests"
         )
     ]

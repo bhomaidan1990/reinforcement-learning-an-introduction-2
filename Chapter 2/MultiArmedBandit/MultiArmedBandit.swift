@@ -190,8 +190,8 @@ public struct MultiArmedBandit: GameProtocol {
     /// of chance nodes are not included in this length.
     public let maxGameLength = Int.max
 
-    private let stationary: Bool
-    private let armCount: Int
+    public let stationary: Bool
+    public let armCount: Int
 
     static private let rewardMean = Tensor(0.0)
     static private let rewardStandardDeviation = Tensor(1.0)
