@@ -9,13 +9,9 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "MultiArmedBandit",
-            targets: ["MultiArmedBandit"]
+            name: "ReinforcementLearning",
+            targets: ["MultiArmedBandit", "Dummy"]
         ),
-        .library(
-            name: "Dummy",
-            targets: ["Dummy"]
-        )
     ],
     dependencies: [
         .package(
