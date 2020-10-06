@@ -1,19 +1,7 @@
 import XCTest
-import MultiArmedBandit
 import class Foundation.Bundle
 
-
-final class MultiArmedBanditTests: XCTestCase {
-    static var allTests = [
-        ("testRandomActions", testRandomActions),
-        ("testExample", testExample),
-    ]
-    
-    func testRandomActions() {
-        let bandit = MultiArmedBandit(armCount: 10)
-        print(bandit)
-    }
-    
+final class UtilitiesTests: XCTestCase {
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
@@ -24,7 +12,7 @@ final class MultiArmedBanditTests: XCTestCase {
             return
         }
 
-        let fooBinary = productsDirectory.appendingPathComponent("MultiArmedBandit")
+        let fooBinary = productsDirectory.appendingPathComponent("Dummy")
 
         let process = Process()
         process.executableURL = fooBinary
@@ -52,4 +40,8 @@ final class MultiArmedBanditTests: XCTestCase {
         return Bundle.main.bundleURL
       #endif
     }
+
+    static var allTests = [
+        ("testExample", testExample),
+    ]
 }

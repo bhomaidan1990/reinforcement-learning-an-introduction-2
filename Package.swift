@@ -11,6 +11,10 @@ let package = Package(
         .library(
             name: "MultiArmedBandit",
             targets: ["MultiArmedBandit"]
+        ),
+        .library(
+            name: "Dummy",
+            targets: ["Dummy"]
         )
     ],
     dependencies: [
@@ -23,13 +27,31 @@ let package = Package(
     targets: [
         .target(
             name: "MultiArmedBandit",
-            dependencies: ["OpenSpiel"],
+            dependencies: ["OpenSpiel", "Utilities"],
             path: "Chapter 2/MultiArmedBandit"
         ),
         .testTarget(
             name: "MultiArmedBanditTests",
             dependencies: ["MultiArmedBandit"],
             path: "Chapter 2/MultiArmedBanditTests"
+        ),
+        .target(
+            name: "Dummy",
+            dependencies: ["OpenSpiel", "Utilities"],
+            path: "Chapter 3/Dummy"
+        ),
+        .testTarget(
+            name: "DummyTests",
+            dependencies: ["Dummy"],
+            path: "Chapter 3/DummyTests"
+        ),
+        .target(
+            name: "Utilities",
+            path: "Tests/Utilities"
+        ),
+        .testTarget(
+            name: "UtilitiesTests",
+            path: "Tests/UtilitiesTests"
         )
     ]
 )
